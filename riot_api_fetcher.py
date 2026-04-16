@@ -8,12 +8,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class RiotAPiFetcher:
-    def __init__(self, api_key: str):
-        """Initialize the Riot API fetcher with your API key."""
+    def __init__(self, api_key: str, data_dir: str = "data"):
         self.api_key = api_key
         self.base_url_eun1 = "https://eun1.api.riotgames.com"
         self.base_url_regional = "https://europe.api.riotgames.com"
-        self.data_dir = "data"
+        self.data_dir = data_dir
 
         if not os.path.exists(self.data_dir):
             os.makedirs(self.data_dir)
@@ -38,33 +37,28 @@ class RiotAPiFetcher:
                 return {}
 
     def get_players_by_rank(self, tier: str = "BRONZE", rank: str = "II",
-                           division: int = 1, queue: str = "RANKED_SOLO_5x5") -> List[Dict]:
-        """
-        Fetch players from a specific rank.
-
-        Args:
-            tier: IRON, BRONZE, SILVER, GOLD, PLATINUM, DIAMOND, MASTER, GRANDMASTER, CHALLENGER
-            rank: I, II, III, IV
-            division: Page number (1-based)
-            queue: RANKED_SOLO_5x5, RANKED_FLEX_SR, RANKED_FLEX_TT
-
-        Returns:
-            List of player objects
-        """
+                           num_players: int = 205,
+                           queue: str = "RANKED_SOLO_5x5") -> List[Dict]:
+        """Fetch up to num_players from a specific rank, paginating as needed."""
         url = f"{self.base_url_eun1}/lol/league/v4/entries/{queue}/{tier}/{rank}"
 
         print(f"Fetching players from {tier} {rank}...")
         players = []
+        page = 1
 
-        # Get up to 205 players (max per page is 205)
-        response = self._make_request(url, {'page': division})
+        while len(players) < num_players:
+            response = self._make_request(url, {'page': page})
 
-        if isinstance(response, list):
-            players = response
-            print(f"Found {len(players)} players")
-        else:
-            print(f"Unexpected response format")
+            if not isinstance(response, list) or len(response) == 0:
+                break
 
+            players.extend(response)
+            print(f"  Page {page}: {len(response)} players (total: {len(players)})")
+            page += 1
+            time.sleep(1.2)
+
+        players = players[:num_players]
+        print(f"Total players fetched: {len(players)}")
         return players
 
     def get_match_timeline(self, match_id: str) -> Dict[str, Any]:
@@ -151,7 +145,7 @@ class RiotAPiFetcher:
                         pass
 
             # Extract participant vision scores from frame participant lists
-            if 'participantFrames' in frame:
+            if frame.get('participantFrames'):
                 for participant_id, participant in frame['participantFrames'].items():
                     if 'visionScore' in participant:
                         if participant_id not in vision_data['vision_score']:
@@ -178,8 +172,7 @@ class RiotAPiFetcher:
             start_time: Unix timestamp in seconds (optional)
             end_time: Unix timestamp in seconds (optional)
         """
-        players = self.get_players_by_rank(tier, rank)
-        players = players[:num_players]
+        players = self.get_players_by_rank(tier, rank, num_players=num_players)
 
         print(f"\nProcessing {len(players)} players...")
 
@@ -245,38 +238,49 @@ class RiotAPiFetcher:
             # Rate limiting between requests
             time.sleep(1.2)
 
+def load_config(path: str = "config.json") -> Dict[str, Any]:
+    with open(path, 'r') as f:
+        return json.load(f)
+
 def main():
-    """Main entry point."""
     import datetime
 
     API_KEY = os.getenv('RIOT_API_KEY')
-
     if not API_KEY:
         print("Error: RIOT_API_KEY not found in .env file")
-        print("Please create a .env file with your API key. See .env.example for reference.")
+        print("Create a .env file based on .env.example")
         return
 
-    fetcher = RiotAPiFetcher(API_KEY)
+    config = load_config()
 
-    num_players = int(input("How many players to fetch? (default: 5): ") or "5")
-    tier = input("Enter tier (BRONZE, SILVER, GOLD, PLATINUM, DIAMOND): ") or "BRONZE"
-    rank = input("Enter rank (I, II, III, IV): ") or "II"
+    num_players = config['num_players']
+    tier        = config['tier'].upper()
+    rank        = config['rank'].upper()
+    output_dir  = config['output_dir']
+    start_date  = datetime.date.fromisoformat(config['start_date'])
+    end_date    = datetime.date.fromisoformat(config['end_date'])
 
-    # time range in Unix seconds
-    start_time = int(datetime.datetime(2026, 2, 1, tzinfo=datetime.timezone.utc).timestamp())
-    end_time   = int(datetime.datetime(2026, 3, 31, 23, 59, 59, tzinfo=datetime.timezone.utc).timestamp())
+    start_time = int(datetime.datetime(start_date.year, start_date.month, start_date.day,
+                                       tzinfo=datetime.timezone.utc).timestamp())
+    end_time   = int(datetime.datetime(end_date.year, end_date.month, end_date.day,
+                                       23, 59, 59, tzinfo=datetime.timezone.utc).timestamp())
 
-    print(f"\nFetching {num_players} players from {tier} {rank} (Feb–Mar 2026)...")
+    print(f"Config loaded:")
+    print(f"  Players : {num_players}")
+    print(f"  Division: {tier} {rank}")
+    print(f"  Period  : {start_date} – {end_date}")
+    print(f"  Output  : {output_dir}/")
 
+    fetcher = RiotAPiFetcher(API_KEY, data_dir=output_dir)
     fetcher.fetch_and_save_player_matches(
         num_players=num_players,
-        tier=tier.upper(),
-        rank=rank.upper(),
+        tier=tier,
+        rank=rank,
         start_time=start_time,
         end_time=end_time
     )
 
-    print(f"\nDone! Data saved to '{fetcher.data_dir}' folder")
+    print(f"\nDone! Data saved to '{output_dir}/' folder")
 
 if __name__ == "__main__":
     main()
