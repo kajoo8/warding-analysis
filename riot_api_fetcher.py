@@ -11,8 +11,8 @@ class RiotAPiFetcher:
     def __init__(self, api_key: str):
         """Initialize the Riot API fetcher with your API key."""
         self.api_key = api_key
-        self.base_url_americas = "https://americas.api.riotgames.com"
-        self.base_url_eu = "https://euw1.api.riotgames.com"
+        self.base_url_eun1 = "https://eun1.api.riotgames.com"
+        self.base_url_regional = "https://europe.api.riotgames.com"
         self.data_dir = "data"
 
         if not os.path.exists(self.data_dir):
@@ -34,7 +34,7 @@ class RiotAPiFetcher:
                 time.sleep(retry_after + 1)
                 return self._make_request(url, {k: v for k, v in params.items() if k != 'api_key'})
             else:
-                print(f"Error: {e}")
+                print(f"HTTP {e.response.status_code} error for {url}: {e.response.text}")
                 return {}
 
     def get_players_by_rank(self, tier: str = "BRONZE", rank: str = "II",
@@ -51,7 +51,7 @@ class RiotAPiFetcher:
         Returns:
             List of player objects
         """
-        url = f"{self.base_url_eu}/lol/league/v4/entries/{queue}/{tier}/{rank}"
+        url = f"{self.base_url_eun1}/lol/league/v4/entries/{queue}/{tier}/{rank}"
 
         print(f"Fetching players from {tier} {rank}...")
         players = []
@@ -69,37 +69,36 @@ class RiotAPiFetcher:
 
     def get_match_timeline(self, match_id: str) -> Dict[str, Any]:
         """Fetch detailed match timeline data including ward and vision events."""
-        url = f"{self.base_url_americas}/lol/match/v5/matches/{match_id}/timeline"
+        url = f"{self.base_url_regional}/lol/match/v5/matches/{match_id}/timeline"
 
         print(f"  Fetching timeline for match {match_id}...")
-        timeline = self._make_request(url)
-
-        return timeline
+        return self._make_request(url)
 
     def get_match_data(self, match_id: str) -> Dict[str, Any]:
         """Fetch match data."""
-        url = f"{self.base_url_americas}/lol/match/v5/matches/{match_id}"
+        url = f"{self.base_url_regional}/lol/match/v5/matches/{match_id}"
 
         print(f"  Fetching match data {match_id}...")
-        match_data = self._make_request(url)
+        return self._make_request(url)
 
-        return match_data
+    def get_player_matches(self, puuid: str, start: int = 0, count: int = 1,
+                           start_time: Optional[int] = None,
+                           end_time: Optional[int] = None) -> List[str]:
+        """Fetch recent match IDs for a player within optional time range."""
+        url = f"{self.base_url_regional}/lol/match/v5/matches/by-puuid/{puuid}/ids"
 
-    def get_player_matches(self, puuid: str, start: int = 0, count: int = 1) -> List[str]:
-        """Fetch recent match IDs for a player."""
-        url = f"{self.base_url_americas}/lol/match/v5/matches/by-puuid/{puuid}/ids"
+        params: Dict[str, Any] = {'start': start, 'count': count, 'queue': 420}
+        if start_time:
+            params['startTime'] = start_time
+        if end_time:
+            params['endTime'] = end_time
 
-        print(f" Fetching match history...")
-        matches = self._make_request(url, {'start': start, 'count': count})
+        print(f"  Fetching match history...")
+        matches = self._make_request(url, params)
 
-        return matches if isinstance(matches, list) else []
-
-    def get_puuid_from_summoner(self, summoner_id: str) -> Optional[str]:
-        """Get PUUID from summoner ID."""
-        url = f"{self.base_url_eu}/lol/summoner/v4/summoners/{summoner_id}"
-
-        summoner = self._make_request(url)
-        return summoner.get('puuid') if summoner else None
+        if isinstance(matches, list):
+            return matches
+        return []
 
     def extract_vision_data(self, timeline: Dict) -> Dict[str, Any]:
         """Extract vision-related events from timeline (wards, vision score, etc)."""
@@ -166,7 +165,9 @@ class RiotAPiFetcher:
         return vision_data
 
     def fetch_and_save_player_matches(self, num_players: int = 5, tier: str = "BRONZE",
-                                      rank: str = "II"):
+                                      rank: str = "II",
+                                      start_time: Optional[int] = None,
+                                      end_time: Optional[int] = None):
         """
         Fetch N players from a rank and save one recent match for each.
 
@@ -174,6 +175,8 @@ class RiotAPiFetcher:
             num_players: Number of players to fetch
             tier: Tier (BRONZE, SILVER, GOLD, etc)
             rank: Rank (I, II, III, IV)
+            start_time: Unix timestamp in seconds (optional)
+            end_time: Unix timestamp in seconds (optional)
         """
         players = self.get_players_by_rank(tier, rank)
         players = players[:num_players]
@@ -181,20 +184,20 @@ class RiotAPiFetcher:
         print(f"\nProcessing {len(players)} players...")
 
         for idx, player in enumerate(players, 1):
-            print(f"\n[{idx}/{len(players)}] Processing {player['summonerName']}")
+            puuid = player.get('puuid')
+            player_label = puuid[:16] if puuid else f"player_{idx}"
 
-            summoner_id = player['summonerId']
-            puuid = self.get_puuid_from_summoner(summoner_id)
+            print(f"\n[{idx}/{len(players)}] Processing {player_label}...")
 
             if not puuid:
-                print(f"  Could not get PUUID for {player['summonerName']}")
+                print(f"  No PUUID in player data, skipping")
                 continue
 
-            # Get recent matches
-            matches = self.get_player_matches(puuid, start=0, count=1)
+            matches = self.get_player_matches(puuid, start=0, count=1,
+                                              start_time=start_time, end_time=end_time)
 
             if not matches:
-                print(f"  No matches found for {player['summonerName']}")
+                print(f"  No matches found")
                 continue
 
             match_id = matches[0]
@@ -213,8 +216,6 @@ class RiotAPiFetcher:
             # Prepare comprehensive output
             output = {
                 'player_info': {
-                    'summoner_name': player['summonerName'],
-                    'summoner_id': summoner_id,
                     'puuid': puuid,
                     'tier': player['tier'],
                     'rank': player['rank'],
@@ -235,7 +236,7 @@ class RiotAPiFetcher:
             }
 
             # Save to file
-            filename = f"{self.data_dir}/{player['summonerName'].replace(' ', '_')}_{match_id}.json"
+            filename = f"{self.data_dir}/{puuid[:16]}_{match_id}.json"
             with open(filename, 'w', encoding='utf-8') as f:
                 json.dump(output, f, indent=2, ensure_ascii=False)
 
@@ -246,6 +247,8 @@ class RiotAPiFetcher:
 
 def main():
     """Main entry point."""
+    import datetime
+
     API_KEY = os.getenv('RIOT_API_KEY')
 
     if not API_KEY:
@@ -255,20 +258,25 @@ def main():
 
     fetcher = RiotAPiFetcher(API_KEY)
 
-    # Customize these parameters
     num_players = int(input("How many players to fetch? (default: 5): ") or "5")
     tier = input("Enter tier (BRONZE, SILVER, GOLD, PLATINUM, DIAMOND): ") or "BRONZE"
     rank = input("Enter rank (I, II, III, IV): ") or "II"
 
-    print(f"\nFetching {num_players} players from {tier} {rank}...")
+    # time range in Unix seconds
+    start_time = int(datetime.datetime(2026, 2, 1, tzinfo=datetime.timezone.utc).timestamp())
+    end_time   = int(datetime.datetime(2026, 3, 31, 23, 59, 59, tzinfo=datetime.timezone.utc).timestamp())
+
+    print(f"\nFetching {num_players} players from {tier} {rank} (Feb–Mar 2026)...")
 
     fetcher.fetch_and_save_player_matches(
         num_players=num_players,
         tier=tier.upper(),
-        rank=rank.upper()
+        rank=rank.upper(),
+        start_time=start_time,
+        end_time=end_time
     )
 
-    print(f"\n✓ Complete! Data saved to '{fetcher.data_dir}' folder")
+    print(f"\nDone! Data saved to '{fetcher.data_dir}' folder")
 
 if __name__ == "__main__":
     main()
