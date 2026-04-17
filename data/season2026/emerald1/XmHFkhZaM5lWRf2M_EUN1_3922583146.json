@@ -1,0 +1,47 @@
+{
+  "player_info": {
+    "puuid": "XmHFkhZaM5lWRf2MtknUXAVlndUMB380_Cm3eaDmYEb6n-5pPmK_3KwytH9WLs7OAUx6o2rM3mvmIQ",
+    "tier": "EMERALD",
+    "rank": "I",
+    "league_points": 1,
+    "wins": 36,
+    "losses": 22
+  },
+  "match_info": {
+    "match_id": "EUN1_3922583146",
+    "game_duration": 0,
+    "game_version": "",
+    "queue_id": 0,
+    "timestamp": 0
+  },
+  "match_data": {
+    "metadata": {
+      "dataVersion": "2",
+      "matchId": "EUN1_3922583146",
+      "participants": [
+        "XmHFkhZaM5lWRf2MtknUXAVlndUMB380_Cm3eaDmYEb6n-5pPmK_3KwytH9WLs7OAUx6o2rM3mvmIQ",
+        "J59iHae3bEZRBrjemDWRHpJy3RZQNCezCk8y1WxPru93rHaunrGLklFgr0GkiqWhRYxJsN7tG_kf2A",
+        "GdkrocDl_JtL1xBnyQZ8yBBwAWzziivn167kfxViboH9SyZtoMRba-uj8ZiLNWY1f5kCyVcFq7uC3Q",
+        "44oMX63SUdSpWrYvPZDm5tUFz1kes-fuw15rEcqHqCarxq_RnAjEe5g3WHHsKUeu3gwWUWBqWjVS1g",
+        "GZmL1UbBsZrLDUlVGUplJ-vwApH0jhyfZdpWoe620XrYvXcU0C5_gHncccwx8Mx_IaEbYD7vBcEmAw",
+        "aAjwl0qndNe0wMA8hYIBO2M3fvDu1AUDSGqM54csvHyM04OIfqTpyb-Rjypggg50AuSixUZWtw6VYQ",
+        "BRUMalZWQfI8P3GxM1LfNeVwDPohXzR8N9Vrd_QnjPfut1ARjM_g_srX3I6ZvYt24eLgRY2N1jq2Xg",
+        "z4LX8lehM6OEB0FTe1Hwcgn_e8TVzLey9TX0cF2E9P9YYz5feMM7oLqcX55pQlMwyoU5Qbm_mJjN0Q",
+        "sb2z2Syo8G5ZFK9X8Xr5-jpdOjKOvKNGoKSHtUbeCulR6PHLZTlFcTFWE_h-05ZrnIST-qoixSjWHg",
+        "EmWoBYPafVox8k3lmqEeCU6v7j149gCJOjW-ZnJ_PWlFN1NYU2AG0HTogG7tAtomMAZCIsmisQGrEQ"
+      ]
+    },
+    "info": {
+      "participants": []
+    }
+  },
+  "vision_data": {
+    "ward_placed": [],
+    "ward_killed": [],
+    "vision_score": {},
+    "stealth_ward_placed": [],
+    "control_ward_purchased": [],
+    "sight_ward_purchased": [],
+    "trinket_updates": []
+  }
+}

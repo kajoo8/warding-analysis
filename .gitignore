@@ -11,10 +11,6 @@ config.json
 *.pem
 *.pub
 
-# Data files
-data/
-*.json
-
 # Python
 __pycache__/
 *.py[cod]
