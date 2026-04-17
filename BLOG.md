@@ -113,7 +113,7 @@ The data supports my friend's claim — **players do appear to place more wards 
 
 1. **Vision score calculation may have changed.** Riot periodically adjusts how vision score is awarded. If the formula became more generous in 2026, `visionScore` and `visionScorePerMinute` would rise even without any change in actual warding behavior.
 
-2. **Trinket cooldowns may have changed.** If Riot reduced the cooldown on stealth ward trinkets between seasons, players would naturally place more `stealthWardsPlaced` wards over the course of a game — no new terrain required.
+2. **Trinket cooldowns may have changed.** If Riot reduced the cooldown on stealth ward trinkets between seasons, players would naturally place more `stealthWardsPlaced` wards over the course of a game — no new terrain is required.
 
 3. **Game duration differences.** Longer games produce more wards. If average game length shifted between seasons, that alone could explain part of the delta (though `visionScorePerMinute` should be robust to this).
 

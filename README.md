@@ -12,20 +12,7 @@ A data pipeline and statistical analysis project investigating whether warding b
 
 ## Results Summary
 
-Statistical comparisons (Mann-Whitney U, non-parametric) across two rank tiers:
-
-| Metric | Bronze I | Emerald I |
-|---|---|---|
-| Vision Score per Minute | +35% ** | +21% ** |
-| Stealth Wards Placed | +14% ** | +5% ** |
-| Total Wards Placed | +14% ** | +5% ** |
-| Wards Killed | +25% ** | +10% ** |
-| Control Wards Placed | ** | n.s. |
-| Vision Wards Bought | ** | n.s. |
-
-`**` = statistically significant (p < 0.05), `n.s.` = not significant
-
-6/7 features show significant increases in Emerald I; 7/7 in Bronze I.
+Can be seen in the vision_analysis.ipynb and BLOG.md file.
 
 ---
 
