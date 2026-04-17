@@ -32,7 +32,7 @@ Statistical comparisons (Mann-Whitney U, non-parametric) across two rank tiers:
 ## Repository Structure
 
 ```
-lol-wards/
+warding-analysis/
 ├── data/
 │   ├── season2025/
 │   │   ├── bronze1/          # ~423 matches (~4,230 participants)
@@ -59,8 +59,8 @@ lol-wards/
 **Requirements:** Python 3.9+, a [Riot Games API key](https://developer.riotgames.com/)
 
 ```bash
-git clone https://github.com/kajoo8/lol-wards
-cd lol-wards
+git clone https://github.com/kajoo8/warding-analysis
+cd warding-analysis
 pip install -r requirements.txt
 cp .env.example .env           # then set RIOT_API_KEY=<your key>
 cp config.example.json config.json  # then set tier, rank, date range, num_players
