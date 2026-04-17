@@ -105,9 +105,33 @@ The pattern held at higher elo too, with 2026 Emerald I players outpacing their 
 
 ---
 
+## A Closer Look: Pink Wards and Support Players
+
+One pattern that stood out was the lack of significance for `controlWardsPlaced` and `visionWardsBoughtInGame` in the all-player results. Across the full population, the differences were small and statistically insignificant — medians of 0 in every group, which suggests that for most roles, buying pink wards simply isn't the norm. So I re-ran the comparison **restricted to support players only**.
+
+### Supports — Bronze I: 2025 vs. 2026
+
+| Feature | Mean 2025 | Mean 2026 | Median 2025 | Median 2026 | p-value | Significant |
+|---|---|---|---|---|---|---|
+| controlWardsPlaced | 1.05 | 1.61 | 0.0 | 1.0 | 0.000001 | **yes** |
+| visionWardsBoughtInGame | 1.17 | 1.56 | 1.0 | 1.0 | 0.000106 | **yes** |
+
+### Supports — Emerald I: 2025 vs. 2026
+
+| Feature | Mean 2025 | Mean 2026 | Median 2025 | Median 2026 | p-value | Significant |
+|---|---|---|---|---|---|---|
+| controlWardsPlaced | 3.13 | 4.07 | 3.0 | 3.0 | < 0.000001 | **yes** |
+| visionWardsBoughtInGame | 3.57 | 3.74 | 3.0 | 4.0 | 0.003355 | **yes** |
+
+Both features are **statistically significant** for supports at both rank brackets — something invisible in the all-player data. Effect sizes are modest (rank-biserial *r* between 0.07 and 0.16), but the direction is consistent: 2026 supports buy and place more pink wards than their 2025 counterparts.
+
+Interestingly, at Bronze I the median `controlWardsPlaced` jumps from 0 to 1 — meaning in 2026, the typical Bronze support places at least one pink ward per game, whereas in 2025 half of them placed none at all.
+
+---
+
 ## Conclusions
 
-The data supports my friend's claim — **players do appear to place more wards in Season 2026**, and this holds at both Bronze I and Emerald I. Vision scores, stealth wards, control wards, and total wards placed are all consistently higher in 2026 across both rank brackets.
+The data supports my friend's claim — **players do appear to place more wards in Season 2026**, and this holds at both Bronze I and Emerald I. Vision scores, stealth wards, total wards placed, and — when looking at support players specifically — control wards are all consistently higher in 2026.
 
 **That said, causation is tricky here.** A few alternative explanations are worth considering before crediting the fairy spots entirely:
 

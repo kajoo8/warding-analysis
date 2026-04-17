@@ -30,7 +30,9 @@ warding-analysis/
 ├── figures/
 │   ├── distributions.png
 │   ├── boxplots.png
-│   └── mean_comparison.png
+│   ├── mean_comparison.png
+│   ├── distributions_supports.png
+│   └── boxplots_supports.png
 ├── vision_analysis.ipynb     # Statistical analysis notebook
 ├── riot_api_fetcher.py       # Riot API data collection pipeline
 ├── trim_data.py              # JSON size reduction utility
@@ -87,6 +89,7 @@ The notebook:
 3. Compares groups with Mann-Whitney U (non-parametric, appropriate for non-normal distributions)
 4. Computes effect sizes via rank-biserial correlation
 5. Outputs figures to `figures/`
+6. Repeats the comparison for `controlWardsPlaced` and `visionWardsBoughtInGame` **restricted to support players** (`teamPosition == "UTILITY"`) to isolate the pink-ward signal from the all-role noise
 
 ---
 
