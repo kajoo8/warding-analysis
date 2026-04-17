@@ -1,144 +1,145 @@
-# Do Players Ward More in Season 2026? A Data-Driven Investigation
+# LOL-Wards: Vision Metric Analysis Across League of Legends Seasons
 
-A few weeks ago a friend of mine made a claim that stuck with me: *"Players ward way more in 2026 — those new fairy spots basically hand you free vision."* He was talking about the new jungle terrain introduced this season, which added several convenient brush-adjacent positions that make warding significantly easier than before.
-
-I couldn't let that go unchecked. So I pulled match data from the Riot API, ran the numbers, and here's what I found.
+A data pipeline and statistical analysis project investigating whether warding behavior changed between Season 2025 and Season 2026 in League of Legends ranked play. The central hypothesis is that new jungle terrain introduced in Season 2026 ("fairy spots") lowers the physical barrier to warding, causing measurable increases in vision metrics.
 
 ---
 
-## The Question
+## Hypothesis
 
-Season 2026 brought changes to the Rift's jungle layout, including new terrain features that create naturally favorable warding positions — colloquially called "fairy spots" by the community. The hypothesis is simple: if warding is easier, players will ward more. I wanted to test this across two skill levels to see whether the effect (if any) is universal or rank-dependent.
+> Players in Season 2026 place significantly more wards and achieve higher vision scores than players at equivalent rank in Season 2025, due to new accessible warding positions introduced with the Season 2026 jungle rework.
 
 ---
 
-## Data
+## Results Summary
 
-I collected ranked match data from the **EUW** server via the Riot Games API, targeting two specific rank buckets:
+Statistical comparisons (Mann-Whitney U, non-parametric) across two rank tiers:
 
-| Group | Matches | Participants |
+| Metric | Bronze I | Emerald I |
 |---|---|---|
-| Season 2025 — Bronze I | 423 | ~4 230 |
-| Season 2026 — Bronze I | 530 | ~5 300 |
-| Season 2025 — Emerald I | 500 | ~5 000 |
-| Season 2026 — Emerald I | 534 | ~5 340 |
+| Vision Score per Minute | +35% ** | +21% ** |
+| Stealth Wards Placed | +14% ** | +5% ** |
+| Total Wards Placed | +14% ** | +5% ** |
+| Wards Killed | +25% ** | +10% ** |
+| Control Wards Placed | ** | n.s. |
+| Vision Wards Bought | ** | n.s. |
 
-For each participant I extracted seven vision-related features:
+`**` = statistically significant (p < 0.05), `n.s.` = not significant
 
-- `visionScorePerMinute` — vision score normalized by game duration
-- `visionScore` — raw vision score
-- `controlWardsPlaced` — pink wards purchased and placed
-- `stealthWardsPlaced` — yellow trinket wards placed
-- `visionWardsBoughtInGame` — control wards bought (item stat)
-- `wardsPlaced` — total wards placed
-- `wardsKilled` — enemy wards destroyed
-
-Data was fetched using the Riot API, trimmed to remove redundant fields, and stored as individual JSON files per match.
+6/7 features show significant increases in Emerald I; 7/7 in Bronze I.
 
 ---
 
-## Data Preparation
-
-Each JSON file contains a full match object. I extracted per-participant rows by reading the `participants` array and pulling both top-level fields (e.g. `visionScore`, `wardsPlaced`) and nested `challenges` fields (e.g. `visionScorePerMinute`, `stealthWardsPlaced`). Missing values were stored as `NaN` and dropped per-feature during analysis — no imputation was applied.
-
-All four groups were concatenated into a single DataFrame tagged with `season` and `tier` labels, yielding a clean dataset of roughly 20 000 participant rows.
-
----
-
-## Statistical Analysis
-
-### Normality Testing
-
-Before choosing a comparison test, I checked whether each feature's distribution was normal within each group using two tests:
-
-- **Shapiro-Wilk** (on a subsample of up to 5 500 observations)
-- **D'Agostino–Pearson** (`normaltest`)
-
-If both tests failed to reject H₀ at α = 0.05, the distribution was treated as normal. Unsurprisingly for behavioral game data, almost all features were **non-normal** — right-skewed with long tails, as you can see in the histograms below.
-
-![Distributions](figures/distributions.png)
-
-### Hypothesis Tests
-
-Comparisons were made within each rank tier across seasons (2025 vs. 2026):
-
-- **Bronze I**: Season 2025 vs. Season 2026
-- **Emerald I**: Season 2025 vs. Season 2026
-
-Since distributions were non-normal, I used the **Mann-Whitney U test** (two-sided, α = 0.05) for all comparisons. Effect sizes were measured using **rank-biserial correlation** (*r*).
-
----
-
-## Results
-
-![Mean Comparison](figures/mean_comparison.png)
-
-![Boxplots](figures/boxplots.png)
-
-### Bronze I — 2025 vs. 2026
-
-Across nearly all features, 2026 Bronze I players showed **statistically significantly higher** vision metrics:
-
-| Feature | Mean 2025 | Mean 2026 | Direction |
-|---|---|---|---|
-| visionScorePerMinute | 0.71 | 0.95 | ↑ 2026 |
-| visionScore | 22.4 | 30.1 | ↑ 2026 |
-| controlWardsPlaced | 0.49 | 0.59 | ↑ 2026 |
-| stealthWardsPlaced | 10.0 | 11.3 | ↑ 2026 |
-| visionWardsBoughtInGame | 0.57 | 0.65 | ↑ 2026 |
-| wardsPlaced | 10.6 | 12.1 | ↑ 2026 |
-| wardsKilled | 1.51 | 1.83 | ↑ 2026 |
-
-All differences were statistically significant (p < 0.05), with modest but consistent effect sizes.
-
-### Emerald I — 2025 vs. 2026
-
-The pattern held at higher elo too, with 2026 Emerald I players outpacing their 2025 counterparts on most metrics:
-
-| Feature | Mean 2025 | Mean 2026 | Direction |
-|---|---|---|---|
-| visionScorePerMinute | 0.91 | 1.10 | ↑ 2026 |
-| visionScore | 28.9 | 33.4 | ↑ 2026 |
-| controlWardsPlaced | 1.21 | 1.34 | ↑ 2026 |
-| stealthWardsPlaced | 9.87 | 10.2 | ↑ 2026 |
-| visionWardsBoughtInGame | 1.43 | 1.39 | ≈ |
-| wardsPlaced | 11.9 | 12.5 | ↑ 2026 |
-| wardsKilled | 3.08 | 3.36 | ↑ 2026 |
-
----
-
-## Conclusions
-
-The data supports my friend's claim — **players do appear to place more wards in Season 2026**, and this holds at both Bronze I and Emerald I. Vision scores, stealth wards, control wards, and total wards placed are all consistently higher in 2026 across both rank brackets.
-
-**That said, causation is tricky here.** A few alternative explanations are worth considering before crediting the fairy spots entirely:
-
-1. **Vision score calculation may have changed.** Riot periodically adjusts how vision score is awarded. If the formula became more generous in 2026, `visionScore` and `visionScorePerMinute` would rise even without any change in actual warding behavior.
-
-2. **Trinket cooldowns may have changed.** If Riot reduced the cooldown on stealth ward trinkets between seasons, players would naturally place more `stealthWardsPlaced` wards over the course of a game — no new terrain required.
-
-3. **Game duration differences.** Longer games produce more wards. If average game length shifted between seasons, that alone could explain part of the delta (though `visionScorePerMinute` should be robust to this).
-
-The fairy spots story is compelling and probably contributes, but a clean causal claim would require controlling for these confounders — ideally by checking Riot's patch notes for vision system and trinket changes between Season 2025 and 2026.
-
----
-
-## Repo Structure
+## Repository Structure
 
 ```
 lol-wards/
 ├── data/
 │   ├── season2025/
-│   │   ├── bronze1/       # raw match JSON files
-│   │   └── emerald1/
+│   │   ├── bronze1/          # ~423 matches (~4,230 participants)
+│   │   └── emerald1/         # ~500 matches (~5,000 participants)
 │   └── season2026/
-│       ├── bronze1/
-│       └── emerald1/
+│       ├── bronze1/          # ~530 matches (~5,300 participants)
+│       └── emerald1/         # ~534 matches (~5,340 participants)
 ├── figures/
 │   ├── distributions.png
 │   ├── boxplots.png
 │   └── mean_comparison.png
-├── vision_analysis.ipynb  # full analysis notebook
-├── riot_api_fetcher.py    # data collection script
-└── trim_data.py           # trims raw JSON to relevant fields
+├── vision_analysis.ipynb     # Statistical analysis notebook
+├── riot_api_fetcher.py       # Riot API data collection pipeline
+├── trim_data.py              # JSON size reduction utility
+├── config.example.json       # Configuration template
+├── .env.example              # Environment variable template
+└── requirements.txt
 ```
+
+---
+
+## Setup
+
+**Requirements:** Python 3.9+, a [Riot Games API key](https://developer.riotgames.com/)
+
+```bash
+git clone https://github.com/kajoo8/lol-wards
+cd lol-wards
+pip install -r requirements.txt
+cp .env.example .env           # then set RIOT_API_KEY=<your key>
+cp config.example.json config.json  # then set tier, rank, date range, num_players
+```
+
+---
+
+## Usage
+
+### 1. Collect Match Data
+
+```bash
+python riot_api_fetcher.py
+```
+
+Fetches ranked players for the configured tier/rank, retrieves their recent match IDs, downloads full match data and timelines from the Riot API (EUW), and extracts vision-related events. Output is written to `data/<season>/<tier>/` as JSON files, one per match.
+
+The fetcher respects Riot API rate limits with automatic backoff and retry on 429 responses.
+
+### 2. Trim JSON Files (Optional)
+
+```bash
+python trim_data.py data/
+```
+
+Strips non-vision fields from match JSON files to reduce disk usage. Reports compression ratio per folder. Safe to run multiple times (idempotent).
+
+### 3. Run Statistical Analysis
+
+```bash
+jupyter notebook vision_analysis.ipynb
+```
+
+The notebook:
+1. Loads all participant records from the four data groups (2 seasons × 2 ranks)
+2. Tests for normality using Shapiro-Wilk and D'Agostino-Pearson tests
+3. Compares groups with Mann-Whitney U (non-parametric, appropriate for non-normal distributions)
+4. Computes effect sizes via rank-biserial correlation
+5. Outputs figures to `figures/`
+
+---
+
+## Vision Features Analyzed
+
+| Feature | Description |
+|---|---|
+| `visionScorePerMinute` | Vision score normalized by game length |
+| `visionScore` | Raw end-of-game vision score |
+| `stealthWardsPlaced` | Yellow trinket ward placements |
+| `controlWardsPlaced` | Pink ward placements |
+| `visionWardsBoughtInGame` | Control ward purchases |
+| `wardsPlaced` | Total wards placed |
+| `wardsKilled` | Enemy wards destroyed |
+
+---
+
+## Configuration
+
+`config.json` controls data collection:
+
+```json
+{
+  "output_dir": "data",
+  "num_players": 1000,
+  "tier": "BRONZE",
+  "rank": "I",
+  "start_date": "2026-02-01",
+  "end_date": "2026-03-31"
+}
+```
+
+Run the fetcher once per group (season × rank combination), updating `start_date`, `end_date`, and `output_dir` each time.
+
+---
+
+## Data Source
+
+[Riot Games API](https://developer.riotgames.com/) — EUNE server, ranked solo/duo queue. Data collection is subject to Riot's API rate limits (20 requests/second, 100 requests/2 minutes on development keys).
+
+*This project is not affiliated with or endorsed by Riot Games.*
+
+---
